@@ -1,404 +1,307 @@
-<!-- Save this as public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Clinic Management System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    :root {
-      --blue: #007BFF;
-      --blue-dark: #0056b3;
-      --gray-bg: #f0f2f5;
-      --card-bg: #fff;
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f2f4f8; }
+    #loginPage, #dashboard, #viewPatientsPage, #viewMedicinesPage { display: none; padding: 20px; }
+    .login-box {
+      max-width: 400px; margin: 100px auto; padding: 30px; background: white;
+      border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    * {
-      box-sizing: border-box;
+    .login-box h2 { text-align: center; }
+    .login-box input, .login-box button {
+      width: 100%; margin: 10px 0; padding: 10px;
+      border: 1px solid #ccc; border-radius: 6px;
     }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      background-color: var(--gray-bg);
+    .login-box button {
+      background: #007bff; color: white; border: none; cursor: pointer;
     }
-
-    .container {
-      max-width: 1100px;
-      margin: 2rem auto;
-      background-color: var(--card-bg);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.08);
-      animation: fadeIn 0.5s ease-in-out;
+    #dashboard { text-align: center; }
+    #dashboard h2 { margin-bottom: 30px; }
+    .dashboard-buttons button {
+      display: block; margin: 10px auto; padding: 12px 20px;
+      background-color: #007bff; color: white; border: none;
+      border-radius: 8px; cursor: pointer; width: 200px;
     }
-
-    h2, h3 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    input, select, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    button {
-      background-color: var(--blue);
-      color: white;
-      font-weight: 600;
-      border: none;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: var(--blue-dark);
-    }
-
-    .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 1rem;
-    }
-
-    .error-message {
-      color: red;
-      text-align: center;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #ccc;
-      word-wrap: break-word;
-    }
-
-    th {
-      background-color: #f5f5f5;
-    }
-
     .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); display: none;
+      justify-content: center; align-items: center; z-index: 999;
     }
-
-    .overlay-content {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      max-height: 90vh;
-      overflow-y: auto;
-      width: 100%;
-      max-width: 500px;
+    .overlay form {
+      background: white; padding: 20px; width: 90%; max-width: 500px;
+      border-radius: 10px; max-height: 80vh; overflow-y: auto;
     }
-
+    .overlay input, .overlay textarea {
+      width: 100%; margin: 8px 0; padding: 10px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    .overlay button {
+      padding: 10px 20px; background: #007bff;
+      color: white; border: none; border-radius: 6px; cursor: pointer;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table th, table td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
+    table th { background-color: #007bff; color: white; }
+    .back-button, .action-btn {
+      margin-top: 10px; padding: 6px 10px;
+      background-color: #007bff; color: white;
+      border: none; border-radius: 6px; cursor: pointer;
+    }
+    .action-btn { margin: 0 2px; }
+    td p { margin: 4px 0; }
     .search-bar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
+      margin: 10px 0;
     }
-
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(10px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        margin: 1rem;
-        padding: 1rem;
-      }
-
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      th {
-        display: none;
-      }
-
-      td {
-        padding: 10px;
-        border: none;
-        border-bottom: 1px solid #ccc;
-        position: relative;
-      }
-
-      td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 120px;
-        white-space: nowrap;
-      }
+    .search-bar input {
+      padding: 8px; width: 200px; margin-right: 10px;
+      border: 1px solid #ccc; border-radius: 6px;
     }
   </style>
 </head>
 <body>
 
-<div id="loginForm" class="container">
-  <h2>Login</h2>
-  <form id="login">
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button type="submit">Login</button>
+<!-- Login Page -->
+<div id="loginPage">
+  <div class="login-box">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <h2>Welcome to Clinic Dashboard</h2>
+  <div class="dashboard-buttons">
+    <button onclick="showOverlay('patient')">Add Patient</button>
+    <button onclick="showView('patients')">View Patients</button>
+    <button onclick="showOverlay('medicine')">Add Medicine</button>
+    <button onclick="showView('medicines')">View Medicines</button>
+  </div>
+</div>
+
+<!-- Add Patient Overlay -->
+<div id="patientOverlay" class="overlay">
+  <form onsubmit="savePatient(event)">
+    <h3 id="patientFormTitle">Add Patient</h3>
+    <input type="text" id="pname" placeholder="Full Name" required />
+    <input type="date" id="pdob" required />
+    <input type="text" id="pgender" placeholder="Gender" required />
+    <input type="text" id="pblood" placeholder="Blood Group" />
+    <input type="text" id="pweight" placeholder="Weight (kg)" />
+    <input type="text" id="pheight" placeholder="Height (cm)" />
+    <input type="tel" id="pphone" placeholder="Phone" />
+    <input type="tel" id="paltphone" placeholder="Alternate Phone" />
+    <input type="email" id="pemail" placeholder="Email" />
+    <input type="text" id="pcity" placeholder="City" />
+    <input type="text" id="pstate" placeholder="State" />
+    <input type="text" id="pmedicines" placeholder="Medicines Taken" />
+    <textarea id="psummary" placeholder="Summary"></textarea>
+    <textarea id="pprescription" placeholder="Prescription"></textarea>
+    <input type="date" id="plastvisit" placeholder="Last Visit" />
+    <button type="submit">Save</button>
+    <button type="button" onclick="hideOverlay('patient')">Cancel</button>
   </form>
-  <p id="loginError" class="error-message"></p>
 </div>
 
-<div id="dashboard" class="container" style="display: none;">
-  <h2>Dashboard</h2>
-  <div class="btn-group">
-    <button onclick="showPatientForm()">Add Patient</button>
-    <button onclick="showPatients()">View Patients</button>
-    <button onclick="showExport()">Export Patient History</button>
-    <button onclick="logout()">Logout</button>
-  </div>
+<!-- Add Medicine Overlay -->
+<div id="medicineOverlay" class="overlay">
+  <form onsubmit="saveMedicine(event)">
+    <h3 id="medicineFormTitle">Add Medicine</h3>
+    <input type="text" id="mname" placeholder="Medicine Name" required />
+    <input type="number" id="mqty" placeholder="Quantity" required />
+    <button type="submit">Save</button>
+    <button type="button" onclick="hideOverlay('medicine')">Cancel</button>
+  </form>
 </div>
 
-<div id="patientFormOverlay" class="overlay" onclick="cancelForm()">
-  <div class="overlay-content" onclick="event.stopPropagation()">
-    <h3 id="formTitle">Add Patient</h3>
-    <form id="patientDataForm">
-      <input type="hidden" id="patientId" />
-      <input type="text" id="fullName" placeholder="Full Name" required />
-      <input type="date" id="dob" required />
-      <select id="gender">
-        <option>Male</option><option>Female</option><option>Other</option>
-      </select>
-      <input type="text" id="bloodGroup" placeholder="Blood Group" required />
-      <input type="text" id="weight" placeholder="Weight (kg)" required />
-      <input type="text" id="height" placeholder="Height (cm)" required />
-      <input type="text" id="phone" placeholder="Phone Number" required />
-      <input type="text" id="altPhone" placeholder="Alt Phone" />
-      <textarea id="summary" placeholder="Summary of Visit" required></textarea>
-      <input type="text" id="medication" placeholder="Medications" />
-      <input type="date" id="lastVisit" required />
-      <button type="submit">Save</button>
-      <button type="button" onclick="cancelForm()">Cancel</button>
-    </form>
-  </div>
-</div>
-
-<div id="viewPatients" class="container" style="display: none;">
-  <h2>View Patients</h2>
+<!-- View Patients -->
+<div id="viewPatientsPage">
+  <h2>All Patients</h2>
   <div class="search-bar">
     <input type="text" id="searchName" placeholder="Search by Name" oninput="filterPatients()" />
-    <input type="text" id="searchMed" placeholder="Search by Medication" oninput="filterPatients()" />
+    <input type="text" id="searchMedicine" placeholder="Search by Medicine" oninput="filterPatients()" />
   </div>
   <table>
-    <thead>
-      <tr>
-        <th>Name</th><th>Gender</th><th>Blood Group</th><th>Phone</th><th>Medication</th><th>Summary</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="patientList"></tbody>
+    <thead><tr><th>#</th><th>Patient Details</th><th>Actions</th></tr></thead>
+    <tbody id="patientTable"></tbody>
   </table>
-  <button onclick="cancelView()">Back</button>
+  <button class="back-button" onclick="goBackToDashboard()">Back</button>
 </div>
 
-<div id="summaryOverlay" class="overlay" onclick="hideSummary()">
-  <div class="overlay-content" onclick="event.stopPropagation()">
-    <h3>Patient Summary</h3>
-    <p id="summaryContent"></p>
-    <button onclick="hideSummary()">Close</button>
+<!-- View Medicines -->
+<div id="viewMedicinesPage">
+  <h2>All Medicines</h2>
+  <div class="search-bar">
+    <input type="text" id="searchMedicineName" placeholder="Search by Medicine Name" oninput="filterMedicines()" />
   </div>
-</div>
-
-<div id="exportOverlay" class="overlay" onclick="hideExport()">
-  <div class="overlay-content" onclick="event.stopPropagation()">
-    <h3>Export Patient</h3>
-    <select id="exportSelect"></select>
-    <button onclick="downloadPDF()">Download PDF</button>
-    <button onclick="hideExport()">Cancel</button>
-  </div>
+  <table>
+    <thead><tr><th>#</th><th>Name</th><th>Quantity</th><th>Actions</th></tr></thead>
+    <tbody id="medicineTable"></tbody>
+  </table>
+  <button class="back-button" onclick="goBackToDashboard()">Back</button>
 </div>
 
 <script>
-const apiUrl = "http://localhost:3000";
-let editingId = null;
-let patientsCache = [];
+  let patients = [], medicines = [];
+  let editPatientIndex = -1, editMedicineIndex = -1;
 
-window.onload = checkLoginState;
+  const loginPage = document.getElementById("loginPage");
+  const dashboard = document.getElementById("dashboard");
+  const viewPatientsPage = document.getElementById("viewPatientsPage");
+  const viewMedicinesPage = document.getElementById("viewMedicinesPage");
 
-document.getElementById("login").onsubmit = async e => {
-  e.preventDefault();
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const res = await fetch(`${apiUrl}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
-  if (data.success) {
-    localStorage.setItem("token", data.token);
-    checkLoginState();
-  } else {
-    document.getElementById("loginError").textContent = data.message;
-  }
-};
+  window.onload = () => loginPage.style.display = 'block';
 
-function checkLoginState() {
-  const token = localStorage.getItem("token");
-  document.getElementById("loginForm").style.display = token ? "none" : "block";
-  document.getElementById("dashboard").style.display = token ? "block" : "none";
-}
-
-function logout() {
-  localStorage.removeItem("token");
-  checkLoginState();
-}
-
-function showPatientForm(patient = null) {
-  document.getElementById("patientFormOverlay").style.display = "flex";
-  document.getElementById("formTitle").textContent = patient ? "Edit Patient" : "Add Patient";
-  const form = document.getElementById("patientDataForm");
-  form.reset();
-  if (patient) {
-    editingId = patient.id;
-    for (let key in patient) {
-      if (form[key]) form[key].value = patient[key];
+  function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    if (username === 'admin' && password === 'admin123') {
+      loginPage.style.display = 'none';
+      dashboard.style.display = 'block';
+    } else {
+      alert('Invalid credentials');
     }
-  } else editingId = null;
-}
+  }
 
-function cancelForm() {
-  document.getElementById("patientFormOverlay").style.display = "none";
-  document.getElementById("patientDataForm").reset();
-  editingId = null;
-}
+  function showOverlay(type, index = -1) {
+    if (type === 'patient') {
+      document.getElementById("patientOverlay").style.display = 'flex';
+      document.getElementById("patientFormTitle").textContent = index >= 0 ? "Edit Patient" : "Add Patient";
+      editPatientIndex = index;
+      const form = document.querySelector('#patientOverlay form');
+      if (index >= 0) {
+        const p = patients[index];
+        pname.value = p.name; pdob.value = p.dob; pgender.value = p.gender;
+        pblood.value = p.blood; pweight.value = p.weight; pheight.value = p.height;
+        pphone.value = p.phone; paltphone.value = p.altphone; pemail.value = p.email;
+        pcity.value = p.city; pstate.value = p.state; pmedicines.value = p.medicines;
+        psummary.value = p.summary; pprescription.value = p.prescription; plastvisit.value = p.lastvisit;
+      } else {
+        form.reset();
+      }
+    } else {
+      document.getElementById("medicineOverlay").style.display = 'flex';
+      document.getElementById("medicineFormTitle").textContent = index >= 0 ? "Edit Medicine" : "Add Medicine";
+      editMedicineIndex = index;
+      const form = document.querySelector('#medicineOverlay form');
+      if (index >= 0) {
+        mname.value = medicines[index].name;
+        mqty.value = medicines[index].qty;
+      } else {
+        form.reset();
+      }
+    }
+  }
 
-document.getElementById("patientDataForm").onsubmit = async e => {
-  e.preventDefault();
-  const token = localStorage.getItem("token");
-  const patient = Object.fromEntries(new FormData(e.target).entries());
-  const method = editingId ? "PUT" : "POST";
-  const endpoint = editingId ? `/patients/${editingId}` : "/patients";
-  await fetch(`${apiUrl}${endpoint}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify(patient),
-  });
-  cancelForm();
-  showPatients();
-};
+  function hideOverlay(type) {
+    document.getElementById(type + 'Overlay').style.display = 'none';
+    editPatientIndex = editMedicineIndex = -1;
+  }
 
-async function showPatients() {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${apiUrl}/patients`, {
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-  const patients = await res.json();
-  patientsCache = patients;
-  displayPatients(patients);
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("viewPatients").style.display = "block";
-}
+  function savePatient(e) {
+    e.preventDefault();
+    const p = {
+      name: pname.value, dob: pdob.value, gender: pgender.value, blood: pblood.value,
+      weight: pweight.value, height: pheight.value, phone: pphone.value, altphone: paltphone.value,
+      email: pemail.value, city: pcity.value, state: pstate.value, medicines: pmedicines.value,
+      summary: psummary.value, prescription: pprescription.value, lastvisit: plastvisit.value
+    };
+    if (editPatientIndex >= 0) patients[editPatientIndex] = p;
+    else patients.push(p);
+    hideOverlay('patient');
+    showView('patients');
+  }
 
-function displayPatients(patients) {
-  const tbody = document.getElementById("patientList");
-  tbody.innerHTML = "";
-  patients.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.fullName}</td>
-      <td>${p.gender}</td>
-      <td>${p.bloodGroup}</td>
-      <td>${p.phone}</td>
-      <td>${p.medication}</td>
-      <td><button onclick='viewSummary(\`${p.summary}\`)'>View</button></td>
-      <td>
-        <button onclick='showPatientForm(${JSON.stringify(p)})'>Edit</button>
-        <button onclick='deletePatient(${p.id})'>Delete</button>
-      </td>`;
-    tbody.appendChild(tr);
-  });
-}
+  function saveMedicine(e) {
+    e.preventDefault();
+    const m = { name: mname.value, qty: mqty.value };
+    if (editMedicineIndex >= 0) medicines[editMedicineIndex] = m;
+    else medicines.push(m);
+    hideOverlay('medicine');
+    showView('medicines');
+  }
 
-function cancelView() {
-  document.getElementById("viewPatients").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-}
+  function deleteItem(index, type) {
+    if (type === 'patient') patients.splice(index, 1);
+    else medicines.splice(index, 1);
+    showView(type === 'patient' ? 'patients' : 'medicines');
+  }
 
-async function deletePatient(id) {
-  if (!confirm("Are you sure?")) return;
-  const token = localStorage.getItem("token");
-  await fetch(`${apiUrl}/patients/${id}`, {
-    method: "DELETE",
-    headers: { "Authorization": `Bearer ${token}` },
-  });
-  showPatients();
-}
+  function showView(type) {
+    dashboard.style.display = 'none';
+    if (type === 'patients') {
+      viewPatientsPage.style.display = 'block';
+      filterPatients();
+    } else {
+      viewMedicinesPage.style.display = 'block';
+      filterMedicines();
+    }
+  }
 
-function viewSummary(summaryText) {
-  document.getElementById("summaryContent").textContent = summaryText;
-  document.getElementById("summaryOverlay").style.display = "flex";
-}
+  function goBackToDashboard() {
+    viewPatientsPage.style.display = 'none';
+    viewMedicinesPage.style.display = 'none';
+    dashboard.style.display = 'block';
+  }
 
-function hideSummary() {
-  document.getElementById("summaryOverlay").style.display = "none";
-}
+  function filterPatients() {
+    const nameFilter = document.getElementById("searchName").value.toLowerCase();
+    const medFilter = document.getElementById("searchMedicine").value.toLowerCase();
+    const table = document.getElementById("patientTable");
+    table.innerHTML = patients.map((p, i) => {
+      if (
+        (p.name.toLowerCase().includes(nameFilter)) &&
+        (p.medicines.toLowerCase().includes(medFilter))
+      ) {
+        return `
+        <tr>
+          <td>${i+1}</td>
+          <td>
+            <p><strong>Name:</strong> ${p.name}</p>
+            <p><strong>DOB:</strong> ${p.dob}</p>
+            <p><strong>Gender:</strong> ${p.gender}</p>
+            <p><strong>Blood Group:</strong> ${p.blood}</p>
+            <p><strong>Weight:</strong> ${p.weight}</p>
+            <p><strong>Height:</strong> ${p.height}</p>
+            <p><strong>Phone:</strong> ${p.phone}</p>
+            <p><strong>Alt Phone:</strong> ${p.altphone}</p>
+            <p><strong>Email:</strong> ${p.email}</p>
+            <p><strong>City:</strong> ${p.city}</p>
+            <p><strong>State:</strong> ${p.state}</p>
+            <p><strong>Medicines Taken:</strong> ${p.medicines}</p>
+            <p><strong>Summary:</strong> ${p.summary}</p>
+            <p><strong>Prescription:</strong> ${p.prescription}</p>
+            <p><strong>Last Visit:</strong> ${p.lastvisit}</p>
+          </td>
+          <td>
+            <button class="action-btn" onclick="showOverlay('patient', ${i})">Edit</button>
+            <button class="action-btn" onclick="deleteItem(${i}, 'patient')">Delete</button>
+          </td>
+        </tr>`;
+      } else return '';
+    }).join('');
+  }
 
-function showExport() {
-  const select = document.getElementById("exportSelect");
-  select.innerHTML = patientsCache.map(p =>
-    `<option value="${p.id}">${p.fullName}</option>`
-  ).join('');
-  document.getElementById("exportOverlay").style.display = "flex";
-}
-
-function hideExport() {
-  document.getElementById("exportOverlay").style.display = "none";
-}
-
-function downloadPDF() {
-  const id = parseInt(document.getElementById("exportSelect").value);
-  const p = patientsCache.find(p => p.id === id);
-  const doc = new window.jspdf.jsPDF();
-  doc.setFontSize(12);
-  doc.text(`Patient History - ${p.fullName}`, 10, 10);
-  Object.entries(p).forEach(([key, val], i) => {
-    doc.text(`${key}: ${val}`, 10, 20 + i * 10);
-  });
-  doc.save(`${p.fullName.replace(/\s+/g, '_')}_History.pdf`);
-}
-
-function filterPatients() {
-  const name = document.getElementById("searchName").value.toLowerCase();
-  const med = document.getElementById("searchMed").value.toLowerCase();
-  const filtered = patientsCache.filter(p =>
-    p.fullName.toLowerCase().includes(name) &&
-    p.medication.toLowerCase().includes(med)
-  );
-  displayPatients(filtered);
-}
+  function filterMedicines() {
+    const filter = document.getElementById("searchMedicineName").value.toLowerCase();
+    const table = document.getElementById("medicineTable");
+    table.innerHTML = medicines.map((m, i) => {
+      if (m.name.toLowerCase().includes(filter)) {
+        return `<tr><td>${i+1}</td><td>${m.name}</td><td>${m.qty}</td>
+          <td>
+            <button class="action-btn" onclick="showOverlay('medicine', ${i})">Edit</button>
+            <button class="action-btn" onclick="deleteItem(${i}, 'medicine')">Delete</button>
+          </td></tr>`;
+      } else return '';
+    }).join('');
+  }
 </script>
+
 </body>
 </html>

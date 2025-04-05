@@ -1,75 +1,93 @@
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
-
 const app = express();
-const PORT = process.env.PORT || 3000; // Use Render's dynamic PORT
-const SECRET_KEY = 'clinic_secret_key';
+const path = require('path');
+const PORT = 3000;
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static(__dirname));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// In-memory storage (same as frontend for now)
 let patients = [];
-let currentId = 1;
+let medicines = [];
 
-// ✅ Root route to check if backend is running
-app.get("/", (req, res) => {
-  res.send("Backend is running! 🚀");
+// Serve the HTML file
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ✅ Login endpoint
+// Handle login (dummy, since frontend handles it for now)
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
-    const token = jwt.sign({ user: 'admin' }, SECRET_KEY, { expiresIn: '2h' });
-    res.json({ success: true, token });
+    res.status(200).send({ success: true });
   } else {
-    res.json({ success: false, message: 'Invalid credentials' });
+    res.status(401).send({ success: false, message: 'Invalid credentials' });
   }
 });
 
-// ✅ Middleware for verifying token
-function verifyToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) return res.sendStatus(401);
-  const token = authHeader.split(' ')[1];
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.sendStatus(403);
-    next();
-  });
-}
-
-// ✅ Get all patients
-app.get('/patients', verifyToken, (req, res) => {
+// Patient APIs (optional if needed for server-side persistence later)
+app.get('/patients', (req, res) => {
   res.json(patients);
 });
 
-// ✅ Add a patient
-app.post('/patients', verifyToken, (req, res) => {
-  const newPatient = { id: currentId++, ...req.body };
-  patients.push(newPatient);
-  res.json(newPatient);
+app.post('/patients', (req, res) => {
+  const patient = req.body;
+  patients.push(patient);
+  res.status(201).json({ message: 'Patient added' });
 });
 
-// ✅ Edit a patient
-app.put('/patients/:id', verifyToken, (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = patients.findIndex(p => p.id === id);
-  if (index === -1) return res.status(404).send('Patient not found');
-  patients[index] = { id, ...req.body };
-  res.json(patients[index]);
+app.put('/patients/:index', (req, res) => {
+  const index = req.params.index;
+  if (patients[index]) {
+    patients[index] = req.body;
+    res.json({ message: 'Patient updated' });
+  } else {
+    res.status(404).json({ message: 'Patient not found' });
+  }
 });
 
-// ✅ Delete a patient
-app.delete('/patients/:id', verifyToken, (req, res) => {
-  const id = parseInt(req.params.id);
-  patients = patients.filter(p => p.id !== id);
-  res.json({ message: 'Deleted' });
+app.delete('/patients/:index', (req, res) => {
+  const index = req.params.index;
+  if (patients[index]) {
+    patients.splice(index, 1);
+    res.json({ message: 'Patient deleted' });
+  } else {
+    res.status(404).json({ message: 'Patient not found' });
+  }
 });
 
-// ✅ Start server
+// Medicine APIs
+app.get('/medicines', (req, res) => {
+  res.json(medicines);
+});
+
+app.post('/medicines', (req, res) => {
+  const medicine = req.body;
+  medicines.push(medicine);
+  res.status(201).json({ message: 'Medicine added' });
+});
+
+app.put('/medicines/:index', (req, res) => {
+  const index = req.params.index;
+  if (medicines[index]) {
+    medicines[index] = req.body;
+    res.json({ message: 'Medicine updated' });
+  } else {
+    res.status(404).json({ message: 'Medicine not found' });
+  }
+});
+
+app.delete('/medicines/:index', (req, res) => {
+  const index = req.params.index;
+  if (medicines[index]) {
+    medicines.splice(index, 1);
+    res.json({ message: 'Medicine deleted' });
+  } else {
+    res.status(404).json({ message: 'Medicine not found' });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Clinic Management Server running at http://localhost:${PORT}`);
 });
