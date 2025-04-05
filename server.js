@@ -1,22 +1,20 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const PORT = process.env.PORT || 3000; // Use environment port for Render
+const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname))); // Serve static files from root
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// In-memory storage
 let patients = [];
 let medicines = [];
 
-// Serve the main HTML page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Dummy login
+// login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
@@ -26,17 +24,12 @@ app.post('/login', (req, res) => {
   }
 });
 
-// Patient APIs
-app.get('/patients', (req, res) => {
-  res.json(patients);
-});
-
+// patient routes
+app.get('/patients', (req, res) => res.json(patients));
 app.post('/patients', (req, res) => {
-  const patient = req.body;
-  patients.push(patient);
+  patients.push(req.body);
   res.status(201).json({ message: 'Patient added' });
 });
-
 app.put('/patients/:index', (req, res) => {
   const index = req.params.index;
   if (patients[index]) {
@@ -46,7 +39,6 @@ app.put('/patients/:index', (req, res) => {
     res.status(404).json({ message: 'Patient not found' });
   }
 });
-
 app.delete('/patients/:index', (req, res) => {
   const index = req.params.index;
   if (patients[index]) {
@@ -57,17 +49,12 @@ app.delete('/patients/:index', (req, res) => {
   }
 });
 
-// Medicine APIs
-app.get('/medicines', (req, res) => {
-  res.json(medicines);
-});
-
+// medicine routes
+app.get('/medicines', (req, res) => res.json(medicines));
 app.post('/medicines', (req, res) => {
-  const medicine = req.body;
-  medicines.push(medicine);
+  medicines.push(req.body);
   res.status(201).json({ message: 'Medicine added' });
 });
-
 app.put('/medicines/:index', (req, res) => {
   const index = req.params.index;
   if (medicines[index]) {
@@ -77,7 +64,6 @@ app.put('/medicines/:index', (req, res) => {
     res.status(404).json({ message: 'Medicine not found' });
   }
 });
-
 app.delete('/medicines/:index', (req, res) => {
   const index = req.params.index;
   if (medicines[index]) {
