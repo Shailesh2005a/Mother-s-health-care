@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
 
+// MongoDB connection setup
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -17,9 +18,32 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB connection error:", err));
 
-// In-memory fallback storage (optional if MongoDB works)
-let patients = [];
-let medicines = [];
+// Define Mongoose schemas and models
+const patientSchema = new mongoose.Schema({
+  name: String,
+  dob: Date,
+  gender: String,
+  blood: String,
+  weight: String,
+  height: String,
+  phone: String,
+  altphone: String,
+  email: String,
+  city: String,
+  state: String,
+  medicines: String,
+  summary: String,
+  prescription: String,
+  lastvisit: Date
+});
+
+const medicineSchema = new mongoose.Schema({
+  name: String,
+  qty: Number
+});
+
+const Patient = mongoose.model('Patient', patientSchema);
+const Medicine = mongoose.model('Medicine', medicineSchema);
 
 // Serve the frontend HTML
 app.get('/', (req, res) => {
@@ -37,64 +61,78 @@ app.post('/login', (req, res) => {
 });
 
 // Patient APIs
-app.get('/patients', (req, res) => {
-  res.json(patients);
-});
-
-app.post('/patients', (req, res) => {
-  const patient = req.body;
-  patients.push(patient);
-  res.status(201).json({ message: 'Patient added' });
-});
-
-app.put('/patients/:index', (req, res) => {
-  const index = req.params.index;
-  if (patients[index]) {
-    patients[index] = req.body;
-    res.json({ message: 'Patient updated' });
-  } else {
-    res.status(404).json({ message: 'Patient not found' });
+app.get('/patients', async (req, res) => {
+  try {
+    const patients = await Patient.find();
+    res.json(patients);
+  } catch (err) {
+    res.status(500).send({ message: 'Error fetching patients', error: err });
   }
 });
 
-app.delete('/patients/:index', (req, res) => {
-  const index = req.params.index;
-  if (patients[index]) {
-    patients.splice(index, 1);
+app.post('/patients', async (req, res) => {
+  try {
+    const newPatient = new Patient(req.body);
+    await newPatient.save();
+    res.status(201).json({ message: 'Patient added' });
+  } catch (err) {
+    res.status(500).send({ message: 'Error saving patient', error: err });
+  }
+});
+
+app.put('/patients/:id', async (req, res) => {
+  try {
+    const updatedPatient = await Patient.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ message: 'Patient updated', updatedPatient });
+  } catch (err) {
+    res.status(404).json({ message: 'Patient not found', error: err });
+  }
+});
+
+app.delete('/patients/:id', async (req, res) => {
+  try {
+    await Patient.findByIdAndDelete(req.params.id);
     res.json({ message: 'Patient deleted' });
-  } else {
-    res.status(404).json({ message: 'Patient not found' });
+  } catch (err) {
+    res.status(404).json({ message: 'Patient not found', error: err });
   }
 });
 
 // Medicine APIs
-app.get('/medicines', (req, res) => {
-  res.json(medicines);
-});
-
-app.post('/medicines', (req, res) => {
-  const medicine = req.body;
-  medicines.push(medicine);
-  res.status(201).json({ message: 'Medicine added' });
-});
-
-app.put('/medicines/:index', (req, res) => {
-  const index = req.params.index;
-  if (medicines[index]) {
-    medicines[index] = req.body;
-    res.json({ message: 'Medicine updated' });
-  } else {
-    res.status(404).json({ message: 'Medicine not found' });
+app.get('/medicines', async (req, res) => {
+  try {
+    const medicines = await Medicine.find();
+    res.json(medicines);
+  } catch (err) {
+    res.status(500).send({ message: 'Error fetching medicines', error: err });
   }
 });
 
-app.delete('/medicines/:index', (req, res) => {
-  const index = req.params.index;
-  if (medicines[index]) {
-    medicines.splice(index, 1);
+app.post('/medicines', async (req, res) => {
+  try {
+    const newMedicine = new Medicine(req.body);
+    await newMedicine.save();
+    res.status(201).json({ message: 'Medicine added' });
+  } catch (err) {
+    res.status(500).send({ message: 'Error saving medicine', error: err });
+  }
+});
+
+app.put('/medicines/:id', async (req, res) => {
+  try {
+    const updatedMedicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ message: 'Medicine updated', updatedMedicine });
+  } catch (err) {
+    res.status(404).json({ message: 'Medicine not found', error: err });
+  }
+});
+
+app.delete('/medicines/:id', async (req, res) => {
+  try {
+    await Medicine.findByIdAndDelete(req.params.id);
     res.json({ message: 'Medicine deleted' });
-  } else {
-    res.status(404).json({ message: 'Medicine not found' });
+  } catch (err) {
+    res.status(404).json({ message: 'Medicine not found', error: err });
   }
 });
 
