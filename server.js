@@ -1,22 +1,22 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use environment port for Render
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname))); // Serve static files from root
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// In-memory storage (same as frontend for now)
+// In-memory storage
 let patients = [];
 let medicines = [];
 
-// Serve the HTML file
+// Serve the main HTML page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle login (dummy, since frontend handles it for now)
+// Dummy login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
@@ -26,7 +26,7 @@ app.post('/login', (req, res) => {
   }
 });
 
-// Patient APIs (optional if needed for server-side persistence later)
+// Patient APIs
 app.get('/patients', (req, res) => {
   res.json(patients);
 });
